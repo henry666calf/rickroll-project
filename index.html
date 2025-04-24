@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超棒影片欣賞</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    #player {
+      border: 2px solid #333;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>歡迎觀看超棒影片！</h1>
+    <div id="player"></div>
+  </div>
+
+  <script>
+    console.log('Script started');
+    // YouTube Iframe API
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+      console.log('YouTube API loaded');
+      player = new YT.Player('player', {
+        height: '360',
+        width: '640',
+        videoId: 'dQw4w9WgXcQ',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onError': onPlayerError
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      console.log('YouTube player ready');
+      event.target.playVideo();
+    }
+
+    function onPlayerError(event) {
+      console.error('YouTube Player Error:', event.data);
+    }
+
+    // 獲取使用者 IP 和詳細資料
+    async function getUserInfo() {
+      try {
+        const response = await fetch('http://localhost:3000/get-ip-info');
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Received IP data:', data);
+        const userInfo = {
+          ip: data.ip || 'Unknown',
+          city: data.city || 'Unknown',
+          region: data.region || 'Unknown',
+          country: data.country_name || data.country || 'Unknown',
+          postal: data.postal || 'Unknown',
+          latitude: data.latitude || 0,
+          longitude: data.longitude || 0,
+          timezone: data.timezone || 'Unknown',
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        };
+        console.log('User info collected:', userInfo);
+        sendToServer(userInfo);
+      } catch (error) {
+        console.error('Error fetching IP info:', error.message);
+      }
+    }
+
+    // 將資料傳送到後端
+    async function sendToServer(userInfo) {
+      try {
+        const response = await fetch('http://localhost:3000/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userInfo)
+        });
+        if (response.ok) {
+          console.log('Data sent to server successfully');
+        } else {
+          console.error('Failed to send data to server:', response.status);
+        }
+      } catch (error) {
+        console.error('Error sending data:', error.message);
+      }
+    }
+
+    // 防止意外刷新
+    window.addEventListener('beforeunload', function (event) {
+      console.log('Page unload attempted');
+      // 可選：取消此註解以顯示提示
+      // event.preventDefault();
+      // event.returnValue = '';
+    });
+
+    // 頁面載入時執行
+    window.onload = function() {
+      console.log('Page loaded');
+      if (confirm('我們將收集您的 IP 和位置資訊，是否同意？')) {
+        console.log('User agreed, fetching IP info');
+        getUserInfo();
+      } else {
+        console.log('User disagreed');
+      }
+    };
+  </script>
+</body>
+</html>
