@@ -71,7 +71,7 @@
     // 獲取使用者 IP 和詳細資料
     async function getUserInfo() {
       try {
-        const response = await fetch('http://localhost:3000/get-ip-info');
+        const response = await fetch('https://rickroll-backend.onrender.com/get-ip-info');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -99,7 +99,7 @@
     // 將資料傳送到後端
     async function sendToServer(userInfo) {
       try {
-        const response = await fetch('http://localhost:3000/save', {
+        const response = await fetch('https://rickroll-backend.onrender.com/save', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
